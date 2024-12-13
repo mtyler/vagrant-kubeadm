@@ -1,0 +1,6 @@
+# use to update the Helm installation
+kong:
+  proxy:
+    type: NodePort
+  http:
+    enabled: true

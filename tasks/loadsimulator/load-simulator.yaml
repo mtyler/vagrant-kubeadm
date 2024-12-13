@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-simulator
+spec:
+  selector:
+    matchLabels:
+      run: load-simulator
+  template:
+    metadata:
+      labels:
+        run: load-simulator
+    spec:
+      containers:
+      - name: load-simulator
+        image: spurin/cpu-mem-simulator:latest
+        args: ["-millicores", "200", "-MiB", "100"]
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: load-simulator
+  labels:
+    run: load-simulator
+spec:
+  ports:
+  - port: 80
+  selector:
+    run: load-simulator

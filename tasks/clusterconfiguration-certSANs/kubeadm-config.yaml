@@ -1,0 +1,29 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+apiServer: 
+  certSANs:
+  - "10.0.0.10"
+  - "k8scp"
+  extraArgs:
+    - name: authorization-mode
+      value: "Node,RBAC"
+  timeoutForControlPlane: 4m0s
+caCertificateValidityPeriod: 87600h0m0s
+certificateValidityPeriod: 8760h0m0s
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controllerManager: {}
+dns: {}
+encryptionAlgorithm: RSA-2048
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: registry.k8s.io
+kubernetesVersion: 1.31.0
+networking:
+  dnsDomain: cluster.local
+  podSubnet: 172.16.1.0/16 
+  serviceSubnet: 172.17.1.0/18
+proxy: {}
+scheduler: {}
+controlPlaneEndpoint: "k8scp:6443"
