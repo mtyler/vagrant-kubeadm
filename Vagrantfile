@@ -16,9 +16,9 @@ SYSTEM_PREP_SH = "scripts/system-prep.sh"
 Vagrant.configure("2") do |config|
   config.vm.provision "shell", env: { "IP_NW" => IP_NW, "IP_START" => IP_START, "NUM_CONTROL_NODES" => NUM_CONTROL_NODES, "NUM_WORKER_NODES" => NUM_WORKER_NODES }, inline: <<-SHELL
       apt-get update -y
-      echo "$IP_NW$((IP_START)) k8scp" >> /etc/hosts
+      ##echo "$IP_NW$((IP_START)) k8scp" >> /etc/hosts
       ## comment above and uncomment below to pin k8scp to cp1
-      ## echo "10.0.0.11 k8scp" >> /etc/hosts
+      echo "10.0.0.11 k8scp" >> /etc/hosts
       for i in `seq 1 ${NUM_CONTROL_NODES}`; do
         echo "$IP_NW$((IP_START+i)) cp${i}" >> /etc/hosts
       done

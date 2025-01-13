@@ -23,7 +23,7 @@ nodes:
     cpu: 1
     memory: 2048
 shared_folders:
-  - host_path: ../../data
+  - host_path: ../data
     vm_path: /usr/data    
 software:
   box: bento/ubuntu-22.04
