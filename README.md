@@ -49,11 +49,6 @@ Validate the cluster access
 kubectl get po -n kube-system
 ```
 
-## Tasks
-
-There are a number of scripts under the tasks folder that may/may not be useful.
-
-
 ## To shutdown the cluster,
 
 ```shell
