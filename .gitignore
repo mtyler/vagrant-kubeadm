@@ -1,6 +1,7 @@
 # General
 .vagrant/
 configs/
+kubeconfig
 
 # output and logging files
 *.log
