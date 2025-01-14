@@ -32,7 +32,6 @@ You can connect to the Vagrant cluster from your local mac terminal by configuri
 
 ```shell
 cd vagrant-kubeadm
-cd configs
 sudo chmod +r config 
 export KUBECONFIG=$(pwd)/config
 ```

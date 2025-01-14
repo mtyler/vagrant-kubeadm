@@ -14,6 +14,7 @@ sudo kubeadm init --control-plane-endpoint "k8scp" \
 #
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo cp -i /etc/kubernetes/admin.conf /vagrant/kubeconfig
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 echo "alias k='kubectl'" >> .bashrc
 echo "source <(kubectl completion bash)" >> .bashrc
