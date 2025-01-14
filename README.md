@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-A working Vagrant setup using VMware Fusion on MAC.
+A working Vagrant setup using VMware Fusion on MacOS ARM64.
 
 ## Bring Up the Cluster
 
