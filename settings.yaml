@@ -12,11 +12,11 @@ network:
   domain: k8scp
 nodes:
   control:
-    count: 3
+    count: 1
     cpu: 2
     memory: 4096
   workers:
-    count: 5
+    count: 2
     cpu: 1
     memory: 2048
 shared_folders:

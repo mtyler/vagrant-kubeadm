@@ -70,7 +70,7 @@ sudo sed -i 's/SystemdCgroup \= false/\SystemdCgroup \= true/g' /etc/containerd/
 CNI_VER="1.6.0"
 ARCH="arm"
 sudo mkdir -p /opt/cni/bin/
-sudo wget https://github.com/containernetworking/plugins/releases/download/v${CNI_VER}/cni-plugins-linux-${ARCH}-v${CNI_VER}.tgz
+sudo wget -q https://github.com/containernetworking/plugins/releases/download/v${CNI_VER}/cni-plugins-linux-${ARCH}-v${CNI_VER}.tgz
 sudo tar Cxzf /opt/cni/bin cni-plugins-linux-${ARCH}-v${CNI_VER}.tgz
 
 sudo systemctl restart containerd

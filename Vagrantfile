@@ -3,8 +3,6 @@ require "yaml"
 vagrant_root = File.dirname(File.expand_path(__FILE__))
 settings = YAML.load_file "#{vagrant_root}/settings.yaml"
 
-
-CONTROL_IP = settings["network"]["control_ip"]
 DOMAIN = settings["network"]["domain"]
 # Split the control IP into 2 parts: the first 3 octets and the last octet
 IP_SECTIONS = settings["network"]["control_ip"].match(/^([0-9.]+\.)([^.]+)$/)
@@ -17,11 +15,13 @@ NUM_WORKER_NODES = settings["nodes"]["workers"]["count"]
 SYSTEM_PREP_SH = "scripts/system-prep.sh"
 
 Vagrant.configure("2") do |config|
-  config.vm.provision "shell", env: { "IP_NW" => IP_NW, "IP_START" => IP_START, "NUM_CONTROL_NODES" => NUM_CONTROL_NODES, "NUM_WORKER_NODES" => NUM_WORKER_NODES }, inline: <<-SHELL
+  config.vm.provision "shell", env: { "IP_NW" => IP_NW, "IP_START" => IP_START, \
+    "NUM_CONTROL_NODES" => NUM_CONTROL_NODES, "NUM_WORKER_NODES" => NUM_WORKER_NODES, \
+    "DOMAIN" => DOMAIN}, inline: <<-SHELL  
       apt-get update -y
       # Lay down the /etc/hosts file
       # pin domain to first control plane node
-      echo "$((CONTROL_IP)) $((DOMAIN))" >> /etc/hosts
+      echo "$IP_NW$((IP_START+1)) ${DOMAIN}" >> /etc/hosts
       for i in `seq 1 ${NUM_CONTROL_NODES}`; do
         echo "$IP_NW$((IP_START+i)) cp${i}" >> /etc/hosts
       done
