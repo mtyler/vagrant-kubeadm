@@ -1,12 +1,11 @@
 #!/bin/bash
-
+set -e
 #
 # Create first control plane node using central hostname
 #
-sudo kubeadm init --control-plane-endpoint "k8scp" \
-     --pod-network-cidr "172.16.1.0/16" \
-     --service-cidr "172.17.1.0/18" \
-     --node-name "cp1" \
+# use the kubeadm-config.yaml file to configure the kubeadm init command
+# bind-address: 0.0.0.0 is required for prometheus to scrape metrics
+sudo kubeadm init --config /vagrant/scripts/kubeadm-config.yaml \
      --upload-certs | tee /vagrant/kubeadm-init-cp1.out
 
 #
@@ -49,6 +48,3 @@ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v${CALI
 # Install Metrics Server
 #
 kubectl apply -f https://raw.githubusercontent.com/techiescamp/kubeadm-scripts/main/manifests/metrics-server.yaml
-
-
-

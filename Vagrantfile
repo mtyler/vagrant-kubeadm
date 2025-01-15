@@ -51,7 +51,12 @@ Vagrant.configure("2") do |config|
       cp.vm.provision "shell",
       env: {},
       path: SYSTEM_PREP_SH
-
+      
+      if cp.vm.hostname == "cp1"
+        cp.vm.provision "shell",
+        env: {},
+        path: "scripts/kubeadm-init-cp1.sh"
+      end
     end
   end  
 
