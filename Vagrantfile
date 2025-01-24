@@ -1,83 +1,98 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
 
-require "yaml"
-vagrant_root = File.dirname(File.expand_path(__FILE__))
-settings = YAML.load_file "#{vagrant_root}/settings.yaml"
-
-DOMAIN = settings["network"]["domain"]
-# Split the control IP into 2 parts: the first 3 octets and the last octet
-IP_SECTIONS = settings["network"]["control_ip"].match(/^([0-9.]+\.)([^.]+)$/)
-# First 3 octets including the trailing dot:
-IP_NW = IP_SECTIONS.captures[0]
-# Last octet excluding all dots:
-IP_START = Integer(IP_SECTIONS.captures[1])
-NUM_CONTROL_NODES = settings["nodes"]["control"]["count"]
-NUM_WORKER_NODES = settings["nodes"]["workers"]["count"]
 SYSTEM_PREP_SH = "scripts/system-prep.sh"
+# This hash will replace settings.yaml
+cluster = {
+  :name => "k8s",
+  :box => "bento/ubuntu-22.04",
+  #:box => "ubuntu/focal64",
+  :pod_cidr => "172.16.1.0/16",
+  :service_cidr => "172.17.1.0/18",
+  :domain => "k8scp",
+  :domain_ip => "10.0.0.11"
+}
+
+nodes = {
+  "cp1" => {
+    :role => "control",
+    :ip => "10.0.0.11",
+    :cpus => 2,
+    :memory => 4096,
+    :shared_folders => [
+      {
+        host_path: "../data/cp1",
+        vm_path: "/usr/data"
+      }
+    ],
+    :provision => "scripts/kubeadm-init-cp1.sh"
+  },
+  "n1" => {
+    :role => "worker",
+    :ip => "10.0.0.21",
+    :cpus => 1,
+    :memory => 2048,
+    :shared_folders => [
+      {
+        host_path: "../data/n1",
+        vm_path: "/usr/data"
+      }
+    ],
+    :provision => "scripts/kubeadm-join.sh"
+  },
+  "n2" => {
+    :role => "worker",
+    :ip => "10.0.0.22",
+    :cpus => 1,
+    :memory => 2048,
+    :shared_folders => [
+      {
+        host_path: "../data/n2",
+        vm_path: "/usr/data"
+      }
+    ],
+    :provision => "scripts/kubeadm-join.sh"
+  }
+}
+
 
 Vagrant.configure("2") do |config|
-  config.vm.provision "shell", env: { "IP_NW" => IP_NW, "IP_START" => IP_START, \
-    "NUM_CONTROL_NODES" => NUM_CONTROL_NODES, "NUM_WORKER_NODES" => NUM_WORKER_NODES, \
-    "DOMAIN" => DOMAIN}, inline: <<-SHELL  
-      apt-get update -y
-      # Lay down the /etc/hosts file
-      # pin domain to first control plane node
-      echo "$IP_NW$((IP_START+1)) ${DOMAIN}" >> /etc/hosts
-      for i in `seq 1 ${NUM_CONTROL_NODES}`; do
-        echo "$IP_NW$((IP_START+i)) cp${i}" >> /etc/hosts
-      done
-      for i in `seq 1 ${NUM_WORKER_NODES}`; do
-        echo "$IP_NW$((IP_START+NUM_CONTROL_NODES+i)) n${i}" >> /etc/hosts
-      done
-  SHELL
+  hostsfile = cluster[:domain_ip] + " " + cluster[:domain] + "\r\n"
+  nodes.each do |hostname, node|
+    hostsfile += node[:ip] + " " + hostname + "\r\n"  
+  end
 
-  config.vm.box = settings["software"]["box"]
-
-  config.vm.box_check_update = true
+  nodes.each do |hostname, node|
+    config.vm.box = cluster[:box]
+    config.vm.box_check_update = true
   
-  # Control Plane Nodes
-  (1..NUM_CONTROL_NODES).each do |i|
-    config.vm.define "cp#{i}" do |cp|
-      cp.vm.hostname = "cp#{i}"
-      cp.vm.network "private_network", ip: IP_NW + "#{IP_START + i}"
-      if settings["shared_folders"]
-        settings["shared_folders"].each do |shared_folder|
-          cp.vm.synced_folder shared_folder["host_path"], shared_folder["vm_path"]
+    config.vm.define hostname do |cfg|
+      cfg.vm.hostname = hostname
+      cfg.vm.network "private_network", ip: node[:ip]
+      if node[:shared_folders]
+        node[:shared_folders].each do |shared_folder|
+          cfg.vm.synced_folder shared_folder[:host_path], shared_folder[:vm_path]
         end
       end
-      cp.vm.provider "vmware_fusion" do |vb|
-          vb.cpus = settings["nodes"]["control"]["cpu"]
-          vb.memory = settings["nodes"]["control"]["memory"]
+      cfg.vm.provider "vmware_fusion" do |vb|
+        vb.cpus = node[:cpus]
+        vb.memory = node[:memory]
       end
-      cp.vm.provision "shell",
+
+      # Lay down the /etc/hosts file
+      cfg.vm.provision "shell", env: { "hostsfile" => hostsfile }, inline: <<-SHELL  
+        apt-get update -y
+        echo "${hostsfile}" >> /etc/hosts
+      SHELL
+      
+      # prepare system for k8s
+      cfg.vm.provision "shell",
       env: {},
       path: SYSTEM_PREP_SH
       
-      if cp.vm.hostname == "cp1"
-        cp.vm.provision "shell",
-        env: {},
-        path: "scripts/kubeadm-init-cp1.sh"
-      end
-    end
-  end  
-
-  # Worker Nodes
-  (1..NUM_WORKER_NODES).each do |i|
-    config.vm.define "n#{i}" do |node|
-      node.vm.hostname = "n#{i}"
-      node.vm.network "private_network", ip: IP_NW + "#{IP_START + NUM_CONTROL_NODES + i}"
-      if settings["shared_folders"]
-        settings["shared_folders"].each do |shared_folder|
-          node.vm.synced_folder shared_folder["host_path"], shared_folder["vm_path"]
-        end
-      end
-      node.vm.provider "vmware_fusion" do |vb|
-          vb.cpus = settings["nodes"]["workers"]["cpu"]
-          vb.memory = settings["nodes"]["workers"]["memory"]
-      end
-      node.vm.provision "shell",
+      cfg.vm.provision "shell",
       env: {},
-      path: SYSTEM_PREP_SH  
+      path: node[:provision]
     end
-
   end
-end 
+end

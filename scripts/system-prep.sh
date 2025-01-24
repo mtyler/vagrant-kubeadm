@@ -37,6 +37,10 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
 EOF
 
+# port forwarding for gateway
+# sudo iptables -t nat -A PREROUTING -p tcp --source 80 -j DNAT --to-destination 10.0.0.11:30080
+# sudo iptables -t nat -A POSTROUTING -j MASQUERADE
+
 # Apply sysctl params without reboot
 sudo sysctl --system
 

@@ -8,12 +8,17 @@ set -e
 sudo kubeadm init --config /vagrant/scripts/kubeadm-config.yaml \
      --upload-certs | tee /vagrant/kubeadm-init-cp1.out
 
+# Create a join command to be used by worker nodes
+sudo kubeadm token create --print-join-command > /vagrant/scripts/kubeadm-join.sh
+
+echo "sudo $(cat /vagrant/scripts/kubeadm-join.sh)" > /vagrant/scripts/kubeadm-join.sh
+
 #
 # Setup .kube/config
 #
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo cp -i /etc/kubernetes/admin.conf /vagrant/kubeconfig
+sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo cp -f /etc/kubernetes/admin.conf /vagrant/kubeconfig
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 echo "alias k='kubectl'" >> .bashrc
 echo "source <(kubectl completion bash)" >> .bashrc
