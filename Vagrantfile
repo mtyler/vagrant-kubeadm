@@ -9,11 +9,24 @@ cluster = {
   #:box => "ubuntu/focal64",
   :pod_cidr => "172.16.1.0/16",
   :service_cidr => "172.17.1.0/18",
-  :domain => "k8scp",
-  :domain_ip => "10.0.0.11"
+  #:domain => "k8scp",
+  #:domain_ip => "10.0.0.11"
 }
 
 nodes = {
+  "k8scp" => {
+    :role => "proxy",
+    :ip => "10.0.0.10",
+    :cpus => 1,
+    :memory => 2048,
+    :shared_folders => [
+      {
+        host_path: "../data/k8scp",
+        vm_path: "/usr/data"
+      }
+    ],
+    :provision => "scripts/k8scp-proxy.sh"
+  },
   "cp1" => {
     :role => "control",
     :ip => "10.0.0.11",
@@ -55,9 +68,9 @@ nodes = {
   }
 }
 
-
 Vagrant.configure("2") do |config|
-  hostsfile = cluster[:domain_ip] + " " + cluster[:domain] + "\r\n"
+  #hostsfile = cluster[:domain_ip] + " " + cluster[:domain] + "\r\n"
+  hostsfile = ""
   nodes.each do |hostname, node|
     hostsfile += node[:ip] + " " + hostname + "\r\n"  
   end
@@ -81,15 +94,16 @@ Vagrant.configure("2") do |config|
 
       # Lay down the /etc/hosts file
       cfg.vm.provision "shell", env: { "hostsfile" => hostsfile }, inline: <<-SHELL  
-        apt-get update -y
         echo "${hostsfile}" >> /etc/hosts
       SHELL
       
       # prepare system for k8s
-      cfg.vm.provision "shell",
-      env: {},
-      path: SYSTEM_PREP_SH
-      
+      if ["control", "worker"].include? node[:role]
+          cfg.vm.provision "shell",
+          env: {},
+          path: SYSTEM_PREP_SH
+      end
+
       cfg.vm.provision "shell",
       env: {},
       path: node[:provision]
