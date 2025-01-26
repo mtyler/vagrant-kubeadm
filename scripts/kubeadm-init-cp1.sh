@@ -8,10 +8,16 @@ set -e
 sudo kubeadm init --config /vagrant/scripts/kubeadm-config.yaml \
      --upload-certs | tee /vagrant/kubeadm-init-cp1.out
 
-# Create a join command to be used by worker nodes
-sudo kubeadm token create --print-join-command > /vagrant/scripts/kubeadm-join.sh
 
-echo "sudo $(cat /vagrant/scripts/kubeadm-join.sh)" > /vagrant/scripts/kubeadm-join.sh
+# Create a join command to be used by worker nodes
+sudo kubeadm token create --print-join-command > /vagrant/scripts/kubeadm-join-node.sh
+echo "sudo $(cat /vagrant/scripts/kubeadm-join-node.sh)" > /vagrant/scripts/kubeadm-join-node.sh
+
+# Extract the certificate key from the output
+CERT_KEY=$(grep -oP '(?<=--certificate-key )\S+' /vagrant/kubeadm-init-cp1.out)
+CONTROL_PLANE_JOIN_CMD=$(cat /vagrant/scripts/kubeadm-join-node.sh)
+## Create a join command to be used by additional control-plane nodes
+echo "$CONTROL_PLANE_JOIN_CMD --control-plane --certificate-key $CERT_KEY" > /vagrant/scripts/kubeadm-join-cpx.sh
 
 #
 # Setup .kube/config

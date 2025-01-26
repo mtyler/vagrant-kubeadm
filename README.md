@@ -8,23 +8,29 @@ A working Vagrant setup using VMware Fusion on MacOS ARM64.
 
 To provision the cluster, execute the following commands.
 
-> Important Note: You have to use sudo with all the vagrant commands.
+> Important Note: You may or may not need to use sudo with all the vagrant commands.
 
 ```shell
 git clone https://github.com/mtyler/vagrant-kubeadm.git
 cd vagrant-kubeadm
-sudo vagrant up
+
+# bring up the proxy 
+vagrant up k8scp
+
+# bring up first Control Plane
+vagrant up cp1
+
+# once cp1 is successfully running, any other combination of nodes can 
+# be added or not
+vagrant up cp2 cp3 n1 n2 n3
 ```
 
-Once the cluster is up, run kubeadm using the provided script on the control plane node
+Once the cluster is up you should see the following files created
 
-```shell
-cd vagrant-kubeadm
-vagrant ssh cp1
-sudo /vagrant/scripts/kubeadm-init-cp1.sh
-```
-
-Follow the instructions in the log output to join remaining nodes
+- ./scripts/kubeadm-join-node.sh
+- ./scripts/kubeadm-join-cp.sh
+- ./kubeadm-init-cp1.out
+- ./kubeconfig
 
 ## Set Kubeconfig file variable
 
@@ -32,14 +38,15 @@ You can connect to the Vagrant cluster from your local mac terminal by configuri
 
 ```shell
 cd vagrant-kubeadm
-sudo chmod +r config 
+sudo chmod +r kubeconfig 
 export KUBECONFIG=$(pwd)/config
 ```
 
 or you can copy the config file to .kube directory.
 
 ```shell
-cp config ~/.kube/
+cd vagrant-kubeadm
+mv kubeconfig ~/.kube/config
 ```
 
 Validate the cluster access

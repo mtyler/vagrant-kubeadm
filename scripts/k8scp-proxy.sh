@@ -33,6 +33,8 @@ frontend kubernetes-frontend
 
 backend kubernetes-backend
     server cp1 10.0.0.11:6443 check
+    server cp2 10.0.0.12:6443 check
+    server cp3 10.0.0.13:6443 check
 
 frontend web-frontend
     bind *:80
@@ -40,9 +42,12 @@ frontend web-frontend
 
 backend web-backend
     server cp1 10.0.0.11:30080 check
+    server cp2 10.0.0.12:30080 check
+    server cp3 10.0.0.13:30080 check
     server n1  10.0.0.21:30080 check
     server n2  10.0.0.22:30080 check
-
+    server n3  10.0.0.23:30080 check
+    
 
 listen stats
     mode http
