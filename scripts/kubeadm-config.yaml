@@ -24,3 +24,9 @@ scheduler:
   extraArgs:
   - name: "bind-address"
     value: "0.0.0.0"
+etcd:
+  local:
+    extraArgs:
+    - name: "listen-metrics-urls"
+      value: "http://0.0.0.0:2381"
+      
