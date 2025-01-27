@@ -1,3 +1,5 @@
+# This config is used in the initial creation of the cluster
+# see kubeadm init command
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
 localAPIEndpoint:
@@ -29,4 +31,13 @@ etcd:
     extraArgs:
     - name: "listen-metrics-urls"
       value: "http://0.0.0.0:2381"
-      
+# This currently needs to be set manually after the cluster comes up
+# to allow Prometheus to gather proxy metrics
+# > kubectl edit configmaps -n kube-system kube-proxy
+# >>>  metricsBindAddress: 0.0.0.0:10249
+# TODO set metricsBindAddress during setup.
+#kubeProxy:
+#  config:
+#    kind: KubeProxyConfiguration
+#    apiVersion: kubeproxy.config.k8s.io/v1alpha1
+#    metricsBindAddress: "0.0.0.0:10249"  
