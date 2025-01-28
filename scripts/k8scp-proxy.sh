@@ -37,15 +37,15 @@ backend kubernetes-backend
     server cp2 10.0.0.12:6443 check
     server cp3 10.0.0.13:6443 check
 
-frontend minio-frontend
-    bind *:9000
-    default_backend minio-backend
-
-backend minio-backend
-    balance roundrobin
-    server cp1 10.0.0.11:9000 check 
-    server cp2 10.0.0.12:9000 check
-    server cp3 10.0.0.13:9000 check
+####frontend minio-frontend
+####    bind *:9000
+####    default_backend minio-backend
+####
+####backend minio-backend
+####    balance roundrobin
+####    server cp1 10.0.0.11:9000 check 
+####    server cp2 10.0.0.12:9000 check
+####    server cp3 10.0.0.13:9000 check
 
 
 frontend web-frontend

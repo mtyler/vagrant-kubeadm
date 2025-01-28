@@ -19,12 +19,6 @@ nodes = {
     :ip => "10.0.0.10",
     :cpus => 1,
     :memory => 2048,
-#    :shared_folders => [
-#      {
-#        host_path: "../data/k8scp",
-#        vm_path: "/usr/data"
-#      }
-#    ],
     :provision => "scripts/k8scp-proxy.sh"
   },
   "cp1" => {
@@ -34,27 +28,16 @@ nodes = {
     :memory => 4096,
     :shared_folders => [
       {
-        host_path: "../data/cp1-etcd",
+        host_path: "../data/etcd-cp1",
         vm_path: "/var/lib/etcd"
       },
       {
-        host_path: "../data/cp1-disk1",
-        vm_path: "/mnt/disk1"
-      },
-      {
-        host_path: "../data/cp1-disk2",
-        vm_path: "/mnt/disk2"
-      },
-      {
-        host_path: "../data/cp1-disk3",
-        vm_path: "/mnt/disk3"
-      },
-      {
-        host_path: "../data/cp1-disk4",
-        vm_path: "/mnt/disk4"
+        host_path: "../data/k8s-cluster",
+        vm_path: "/var/nfs/k8s-cluster"
       }
     ],
-    :provision => "scripts/kubeadm-init-cp1.sh"
+    :provision => "scripts/kubeadm-init-cp1.sh",
+    :persistance => "scripts/nfsserver-sysprep.sh"
   },
   "cp2" => {
     :role => "control",
@@ -63,27 +46,12 @@ nodes = {
     :memory => 4096,
     :shared_folders => [
       {
-        host_path: "../data/cp2-etcd",
+        host_path: "../data/etcd-cp2",
         vm_path: "/var/lib/etcd"
-      },
-      {
-        host_path: "../data/cp2-disk1",
-        vm_path: "/mnt/disk1"
-      },
-      {
-        host_path: "../data/cp2-disk2",
-        vm_path: "/mnt/disk2"
-      },
-      {
-        host_path: "../data/cp2-disk3",
-        vm_path: "/mnt/disk3"
-      },
-      {
-        host_path: "../data/cp2-disk4",
-        vm_path: "/mnt/disk4"
       }
     ],
-    :provision => "scripts/kubeadm-join-cpx.sh"
+    :provision => "scripts/kubeadm-join-cpx.sh",
+    :persistance => "scripts/nfsclient-sysprep.sh"
   },
   "cp3" => {
     :role => "control",
@@ -92,27 +60,12 @@ nodes = {
     :memory => 4096,
     :shared_folders => [
       {
-        host_path: "../data/cp3-etcd",
+        host_path: "../data/etcd-cp3",
         vm_path: "/var/lib/etcd"
-      },
-      {
-        host_path: "../data/cp3-disk1",
-        vm_path: "/mnt/disk1"
-      },
-      {
-        host_path: "../data/cp3-disk2",
-        vm_path: "/mnt/disk2"
-      },
-      {
-        host_path: "../data/cp3-disk3",
-        vm_path: "/mnt/disk3"
-      },
-      {
-        host_path: "../data/cp3-disk4",
-        vm_path: "/mnt/disk4"
       }
     ],
-    :provision => "scripts/kubeadm-join-cpx.sh"
+    :provision => "scripts/kubeadm-join-cpx.sh",
+    :persistance => "scripts/nfsclient-sysprep.sh"
   },
   "n1" => {
     :role => "worker",
@@ -175,12 +128,10 @@ Vagrant.configure("2") do |config|
             cfg.vm.synced_folder shared_folder[:host_path], shared_folder[:vm_path], create: true
           end
         end
-        # install minio to serve as an S3 substitute
-        if ["control"].include? node[:role] 
-          cfg.vm.provision "shell",
-          env: {},
-          path: "./scripts/minio-sysprep.sh"
-        end   
+        # nfs shares
+        if node[:persistance] 
+          cfg.vm.provision "shell", env: {}, path: node[:persistance]
+        end
       end
 
       cfg.vm.provider "vmware_fusion" do |vb|
@@ -195,14 +146,13 @@ Vagrant.configure("2") do |config|
       
       # prepare system for k8s
       if ["control", "worker"].include? node[:role]
-          cfg.vm.provision "shell",
-          env: {},
-          path: SYSTEM_PREP_SH
+          cfg.vm.provision "shell", env: {}, path: SYSTEM_PREP_SH
       end
 
-      cfg.vm.provision "shell",
-      env: {},
-      path: node[:provision]
+      # kubeadm commands
+      if node[:provision]
+        cfg.vm.provision "shell", env: {}, path: node[:provision]
+      end  
     end
   end
 end
