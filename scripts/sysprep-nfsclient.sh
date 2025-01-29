@@ -1,7 +1,8 @@
 #!/bin/bash
 # attach to an NFS share
-
 NFSSERVER='10.0.0.11'
+
+echo "Begin configuring nfs client for ${NFSSERVER}"
 sudo apt-get update && sudo apt-get install -y nfs-common
 sudo mkdir -p /nfs
 sudo mkdir -p /nfs/k8s-cluster

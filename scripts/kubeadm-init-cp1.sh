@@ -1,22 +1,38 @@
 #!/bin/bash
 set -e
+
+echo "****************************************************************"
+echo "Begin initializing the first control plane node"
 #
 # Create first control plane node using central hostname
 #
 # use the kubeadm-config.yaml file to configure the kubeadm init command
 # bind-address: 0.0.0.0 is required for prometheus to scrape metrics
-sudo kubeadm init --config /vagrant/scripts/kubeadm-config.yaml \
-     --upload-certs | tee /vagrant/scritpts/kubeadm-init-cp1.out
+SCRIPT_DIR="/vagrant/scripts"
+sudo kubeadm init --config $SCRIPT_DIR/kubeadm-config.yaml \
+     --upload-certs | tee $SCRIPT_DIR/kubeadm-init-cp1.out
 
 # create/update the join scripts
-source ./kubeadm-init-token-create.sh
+#    more work req to get this functional, file is run from /tmp
+# source $SCRIPT_DIR/kubeadm-init-token-create.sh
+
+# Create a join command to be used by worker nodes
+sudo kubeadm token create --print-join-command > $SCRIPT_DIR/kubeadm-join-node.sh
+echo "sudo $(cat ${SCRIPT_DIR}/kubeadm-join-node.sh)" > $SCRIPT_DIR/kubeadm-join-node.sh
+
+# Extract the certificate key from the output
+#TODO extract the certificate key from the certificate key
+CERT_KEY=$(grep -oP '(?<=--certificate-key )\S+' ${SCRIPT_DIR}/kubeadm-init-cp1.out)
+CONTROL_PLANE_JOIN_CMD=$(cat $SCRIPT_DIR/kubeadm-join-node.sh)
+## Create a join command to be used by additional control-plane nodes
+echo "$CONTROL_PLANE_JOIN_CMD --control-plane --certificate-key $CERT_KEY" > $DIR/kubeadm-join-cpx.sh
 
 #
 # Setup .kube/config
 #
 sudo mkdir -p $HOME/.kube
 sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo cp -f /etc/kubernetes/admin.conf /vagrant/scripts/kubeconfig
+sudo cp -f /etc/kubernetes/admin.conf $SCRIPT_DIR/kubeconfig
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 echo "alias k='kubectl'" >> .bashrc
 echo "source <(kubectl completion bash)" >> .bashrc
@@ -28,26 +44,3 @@ kubectl taint nodes cp1 node-role.kubernetes.io/control-plane-
 #
 CALICO_VERSION="3.29.0"
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v${CALICO_VERSION}/manifests/calico.yaml
-
-## removing cilium networking. 
-## Works well, however, it requires additional configuration to allow traffic on the 10.0.0.x network
-## 
-### 
-###  install cilium networking 
-###
-##CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-##CLI_ARCH=amd64
-##if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
-##curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
-##sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
-##sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
-##rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
-##
-##cilium install --version 1.16.3
-##cilium status --wait
-##cilium connectivity test
-
-#
-# Install Metrics Server
-#
-kubectl apply -f https://raw.githubusercontent.com/techiescamp/kubeadm-scripts/main/manifests/metrics-server.yaml

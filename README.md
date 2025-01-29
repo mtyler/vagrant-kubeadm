@@ -29,8 +29,8 @@ Once the cluster is up you should see the following files created
 
 - ./scripts/kubeadm-join-node.sh
 - ./scripts/kubeadm-join-cp.sh
-- ./kubeadm-init-cp1.out
-- ./kubeconfig
+- ./scripts/kubeadm-init-cp1.out
+- ./scripts/kubeconfig
 
 ## Set Kubeconfig file variable
 

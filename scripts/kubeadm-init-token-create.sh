@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+# DEPRECATED #
+
 # get the full path of the script
 DIR=$( dirname "$0" )
 

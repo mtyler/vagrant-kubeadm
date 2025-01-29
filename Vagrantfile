@@ -46,7 +46,7 @@ nodes = {
       }
     ],
     :provision => "scripts/kubeadm-init-cp1.sh",
-    :persistance => "scripts/sysprep-nfsserver.sh"
+    :nfs_service => "scripts/sysprep-nfsserver.sh"
   },
   "cp2" => {
     :role => "control",
@@ -60,7 +60,7 @@ nodes = {
       }
     ],
     :provision => "scripts/kubeadm-join-cpx.sh"
-    #, :persistance => "scripts/sysprep-nfsclient.sh"
+    #, :nfs_service => "scripts/sysprep-nfsclient.sh"
   },
   "cp3" => {
     :role => "control",
@@ -74,7 +74,7 @@ nodes = {
       }
     ],
     :provision => "scripts/kubeadm-join-cpx.sh"
-    #, :persistance => "scripts/sysprep-nfsclient.sh"
+    #, :nfs_service => "scripts/sysprep-nfsclient.sh"
   },
   "n1" => {
     :role => "worker",
@@ -120,8 +120,8 @@ Vagrant.configure("2") do |config|
           end
         end
         # nfs shares
-        if node[:persistance] 
-          cfg.vm.provision "shell", env: {}, path: node[:persistance]
+        if node[:nfs_service] 
+          cfg.vm.provision "shell", env: {}, path: node[:nfs_service]
         end
       end
 
