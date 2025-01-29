@@ -37,10 +37,6 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
 EOF
 
-# port forwarding for gateway
-# sudo iptables -t nat -A PREROUTING -p tcp --source 80 -j DNAT --to-destination 10.0.0.11:30080
-# sudo iptables -t nat -A POSTROUTING -j MASQUERADE
-
 # Apply sysctl params without reboot
 sudo sysctl --system
 
@@ -48,9 +44,28 @@ echo -e "\n\n system settiings modified. Begin package installs. \n\n"
 
 #
 # add basic tools
-#
+# - install chrony to keep better time, reccomended by Fluentd
+# 
 sudo apt-get update -y
-sudo apt-get install -y software-properties-common curl apt-transport-https ca-certificates jq
+sudo apt-get install -y software-properties-common curl apt-transport-https ca-certificates jq chrony
+
+# setup reccomendations from fluentd
+#   see: https://docs.fluentd.org/installation/before-install
+#   1. setup time server
+#   2. increase file descriptors
+#   3. Optimize Network Params (not implemented)
+#   4. Use sticky bit link protection (not implemented)
+sudo systemctl enable chrony.service
+sudo systemctl start chrony.service
+
+## this may not be required...  it's possible that these are only needed for running directly on the system
+##cat <<EOF | sudo tee /etc/security/limits.conf
+##root soft nofile 65536
+##root hard nofile 65536
+##* soft nofile 65536
+##* hard nofile 65536
+##EOF
+
 
 #
 # install Container Runtime 

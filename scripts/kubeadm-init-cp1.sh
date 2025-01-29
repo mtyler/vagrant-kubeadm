@@ -6,25 +6,17 @@ set -e
 # use the kubeadm-config.yaml file to configure the kubeadm init command
 # bind-address: 0.0.0.0 is required for prometheus to scrape metrics
 sudo kubeadm init --config /vagrant/scripts/kubeadm-config.yaml \
-     --upload-certs | tee /vagrant/kubeadm-init-cp1.out
+     --upload-certs | tee /vagrant/scritpts/kubeadm-init-cp1.out
 
-
-# Create a join command to be used by worker nodes
-sudo kubeadm token create --print-join-command > /vagrant/scripts/kubeadm-join-node.sh
-echo "sudo $(cat /vagrant/scripts/kubeadm-join-node.sh)" > /vagrant/scripts/kubeadm-join-node.sh
-
-# Extract the certificate key from the output
-CERT_KEY=$(grep -oP '(?<=--certificate-key )\S+' /vagrant/kubeadm-init-cp1.out)
-CONTROL_PLANE_JOIN_CMD=$(cat /vagrant/scripts/kubeadm-join-node.sh)
-## Create a join command to be used by additional control-plane nodes
-echo "$CONTROL_PLANE_JOIN_CMD --control-plane --certificate-key $CERT_KEY" > /vagrant/scripts/kubeadm-join-cpx.sh
+# create/update the join scripts
+source ./kubeadm-init-token-create.sh
 
 #
 # Setup .kube/config
 #
-mkdir -p $HOME/.kube
+sudo mkdir -p $HOME/.kube
 sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo cp -f /etc/kubernetes/admin.conf /vagrant/kubeconfig
+sudo cp -f /etc/kubernetes/admin.conf /vagrant/scripts/kubeconfig
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 echo "alias k='kubectl'" >> .bashrc
 echo "source <(kubectl completion bash)" >> .bashrc

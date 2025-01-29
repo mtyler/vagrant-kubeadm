@@ -9,8 +9,8 @@ cluster = {
   :service_cidr => "172.17.1.0/18",
   :domain => "k8s.local",
   # if true, the shared folders will be created to store etcd data on this host
-  :persist => true
-  :kubeadm_prereq => "scripts/kubeadm-sysprep.sh"
+  :persist => true,
+  :kubeadm_prereq => "scripts/sysprep-kubeadm.sh"
 }
 
 # VMs
@@ -22,6 +22,14 @@ nodes = {
     :memory => 2048,
     :provision => "scripts/k8scp-proxy.sh"
   },
+  # This node is must be started before cp2, cp3, n1, n2, n3
+  #
+  # etcd runs on the controlplane and steps need to be taken to ensure 
+  # it can elect a leader.
+  #   cp1 should run alone
+  #      OR
+  #   cp1, cp2 and cp3 should all run together  
+  #
   "cp1" => {
     :role => "control",
     :ip => "10.0.0.11",
@@ -38,7 +46,7 @@ nodes = {
       }
     ],
     :provision => "scripts/kubeadm-init-cp1.sh",
-    :persistance => "scripts/nfsserver-sysprep.sh"
+    :persistance => "scripts/sysprep-nfsserver.sh"
   },
   "cp2" => {
     :role => "control",
@@ -51,8 +59,8 @@ nodes = {
         vm_path: "/var/lib/etcd"
       }
     ],
-    :provision => "scripts/kubeadm-join-cpx.sh",
-    :persistance => "scripts/nfsclient-sysprep.sh"
+    :provision => "scripts/kubeadm-join-cpx.sh"
+    #, :persistance => "scripts/sysprep-nfsclient.sh"
   },
   "cp3" => {
     :role => "control",
@@ -65,8 +73,8 @@ nodes = {
         vm_path: "/var/lib/etcd"
       }
     ],
-    :provision => "scripts/kubeadm-join-cpx.sh",
-    :persistance => "scripts/nfsclient-sysprep.sh"
+    :provision => "scripts/kubeadm-join-cpx.sh"
+    #, :persistance => "scripts/sysprep-nfsclient.sh"
   },
   "n1" => {
     :role => "worker",

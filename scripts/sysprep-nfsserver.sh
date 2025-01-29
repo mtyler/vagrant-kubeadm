@@ -10,7 +10,10 @@ sudo chmod 777 /var/nfs/k8s-cluster
 
 sudo systemctl enable nfs-kernel-server.service
 
-EXPORT='/var/nfs/k8s-cluster 10.0.0.0/24(rw,sync,no_subtree_check)'
+EXPORT="/var/nfs/k8s-cluster 10.0.0.0/24(rw,sync,no_subtree_check,fsid=10)\n\
+/var/nfs/k8s-cluster 172.16.1.0/16(rw,sync,no_subtree_check,fsid=16)\n\
+/var/nfs/k8s-cluster 172.17.1.0/18(rw,sync,no_subtree_check,fsid=17)"
+
 sudo grep -xF "${EXPORT}" /etc/exports || sudo sed -i -e "\$a${EXPORT}" /etc/exports
 
 sudo exportfs -a
