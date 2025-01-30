@@ -10,8 +10,7 @@ cluster = {
   :domain => "k8s.local",
   # if true, the shared folders will be created to store etcd data on this host
   :persist => true,
-  :kubeadm_prereq => "scripts/sysprep-kubeadm.sh",
-  :nfs_share => "/var/nfs/k8s-cluster-pvs"
+  :kubeadm_prereq => "scripts/sysprep-kubeadm.sh"
 }
 
 # VMs
@@ -36,16 +35,12 @@ nodes = {
     :ip => "10.0.0.11",
     :cpus => 2,
     :memory => 4096,
-    :shared_folders => [
-      {
-        host_path: "../data/etcd-cp1",
-        vm_path: "/var/lib/etcd"
-      },
-      {
-        host_path: "../data/k8s-cluster-pvs",
-        vm_path: cluster[:nfs_share]
-      }
-    ],
+#    :shared_folders => [
+#      {
+#        host_path: "../data/nfs",
+#        vm_path: "/var/nfs"
+#      }
+#    ],
     :provision => "scripts/kubeadm-init-cp1.sh",
     :nfs_service => "scripts/sysprep-nfsserver.sh"
   },
@@ -54,12 +49,6 @@ nodes = {
     :ip => "10.0.0.12",
     :cpus => 2,
     :memory => 4096,
-    :shared_folders => [
-      {
-        host_path: "../data/etcd-cp2",
-        vm_path: "/var/lib/etcd"
-      }
-    ],
     :provision => "scripts/kubeadm-join-cpx.sh"
     #, :nfs_service => "scripts/sysprep-nfsclient.sh"
   },
@@ -68,12 +57,6 @@ nodes = {
     :ip => "10.0.0.13",
     :cpus => 2,
     :memory => 4096,
-    :shared_folders => [
-      {
-        host_path: "../data/etcd-cp3",
-        vm_path: "/var/lib/etcd"
-      }
-    ],
     :provision => "scripts/kubeadm-join-cpx.sh"
     #, :nfs_service => "scripts/sysprep-nfsclient.sh"
   },
@@ -115,15 +98,17 @@ Vagrant.configure("2") do |config|
       cfg.vm.network "private_network", ip: node[:ip]
       if cluster[:persist]
       # configure shared folders to persist data on the local file system
-        if node[:shared_folders]
-          node[:shared_folders].each do |shared_folder|
-            cfg.vm.synced_folder shared_folder[:host_path], shared_folder[:vm_path], create: true
-          end
-        end
         # nfs shares
         if node[:nfs_service] 
           cfg.vm.provision "shell", env: {}, path: node[:nfs_service]
         end
+      
+        if node[:shared_folders]
+          node[:shared_folders].each do |shared_folder|
+            cfg.vm.synced_folder shared_folder[:host_path], shared_folder[:vm_path], :create => true
+          end
+        end
+        
       end
 
       cfg.vm.provider "vmware_fusion" do |vb|
