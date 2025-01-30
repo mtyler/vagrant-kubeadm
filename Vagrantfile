@@ -10,7 +10,8 @@ cluster = {
   :domain => "k8s.local",
   # if true, the shared folders will be created to store etcd data on this host
   :persist => true,
-  :kubeadm_prereq => "scripts/sysprep-kubeadm.sh"
+  :kubeadm_prereq => "scripts/sysprep-kubeadm.sh",
+  :nfs_share => "/var/nfs/k8s-cluster-pvs"
 }
 
 # VMs
@@ -41,8 +42,8 @@ nodes = {
         vm_path: "/var/lib/etcd"
       },
       {
-        host_path: "../data/k8s-cluster",
-        vm_path: "/var/nfs/k8s-cluster"
+        host_path: "../data/#{cluster[:nfs_share]}",
+        vm_path: cluster[:nfs_share]
       }
     ],
     :provision => "scripts/kubeadm-init-cp1.sh",

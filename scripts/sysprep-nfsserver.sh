@@ -18,7 +18,7 @@ sudo mkdir -p /nfs/$SHARE_NAME
 sudo chown -R nobody:nogroup /nfs/$SHARE_NAME
 sudo chmod 777 /nfs/$SHARE_NAME
 # link to make directories available on host machine
-sudo ln -s /nfs/$SHARE_NAME
+sudo ln -s /nfs/$SHARE_NAME /var/nfs/$SHARE_NAME
 
 sudo systemctl enable nfs-kernel-server.service
 
