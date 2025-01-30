@@ -42,7 +42,7 @@ nodes = {
         vm_path: "/var/lib/etcd"
       },
       {
-        host_path: "../data/#{cluster[:nfs_share]}",
+        host_path: "../data/k8s-cluster-pvs",
         vm_path: cluster[:nfs_share]
       }
     ],

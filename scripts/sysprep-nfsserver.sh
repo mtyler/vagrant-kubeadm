@@ -8,13 +8,15 @@ echo "Begin configuring nfs server"
 sudo apt-get update && sudo apt-get install -y nfs-kernel-server
 
 SHARE_NAME="k8s-cluster-pvs"
-# /var/nfs$SHARE_NAME - vagrant share, not able to change perms
+# create directory for vagrant share. This is the drive mapped 
+# to host machine and we're not able to change perms
 sudo mkdir -p /var/nfs
 sudo mkdir -p /var/nfs/$SHARE_NAME
-# /nfs$SHARE_NAME - nfs share 
+# create directories for the nfs share 
+# this will be exported to nfs clients 
 sudo mkdir -p /nfs
 sudo mkdir -p /nfs/$SHARE_NAME
-# permissions required for nfs server
+# permissions required by nfs server
 sudo chown -R nobody:nogroup /nfs/$SHARE_NAME
 sudo chmod 777 /nfs/$SHARE_NAME
 # link to make directories available on host machine

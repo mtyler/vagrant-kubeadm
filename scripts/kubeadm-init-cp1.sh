@@ -25,7 +25,7 @@ echo "sudo $(cat ${SCRIPT_DIR}/kubeadm-join-node.sh)" > $SCRIPT_DIR/kubeadm-join
 CERT_KEY=$(grep -oP '(?<=--certificate-key )\S+' ${SCRIPT_DIR}/kubeadm-init-cp1.out)
 CONTROL_PLANE_JOIN_CMD=$(cat $SCRIPT_DIR/kubeadm-join-node.sh)
 ## Create a join command to be used by additional control-plane nodes
-echo "$CONTROL_PLANE_JOIN_CMD --control-plane --certificate-key $CERT_KEY" > $DIR/kubeadm-join-cpx.sh
+echo "$CONTROL_PLANE_JOIN_CMD --control-plane --certificate-key $CERT_KEY" > $SCRIPT_DIR/kubeadm-join-cpx.sh
 
 #
 # Setup .kube/config
